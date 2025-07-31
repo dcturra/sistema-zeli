@@ -1,0 +1,20 @@
+{
+  "version": 2,
+  "functions": {
+    "api/records.js": {
+      "maxDuration": 30
+    },
+    "api/medications.js": {
+      "maxDuration": 30
+    },
+    "api/technicians.js": {
+      "maxDuration": 30
+    }
+  },
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    }
+  ]
+} 

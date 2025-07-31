@@ -1,0 +1,25 @@
+{
+  "name": "diario-zeli-vercel",
+  "version": "1.0.0",
+  "description": "Sistema de acompanhamento de sinais vitais da paciente Zeli com Vercel",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "vercel dev"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^7.5.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1"
+  },
+  "keywords": [
+    "healthcare",
+    "vital-signs",
+    "mongodb",
+    "vercel",
+    "serverless"
+  ],
+  "author": "Diario Zeli Team",
+  "license": "MIT"
+} 

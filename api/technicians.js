@@ -1,140 +1,53 @@
-const { CosmosClient } = require('@azure/cosmos');
+const mongoose = require('mongoose');
+const cors = require('cors');
 
-// Configuração do Cosmos DB
-const endpoint = process.env.COSMOS_ENDPOINT;
-const key = process.env.COSMOS_KEY;
-const databaseId = 'zeli-database';
-const containerId = 'technicians';
+// MongoDB Connection
+mongoose.connect(process.env.MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+});
 
-const client = new CosmosClient({ endpoint, key });
-const database = client.database(databaseId);
-const container = database.container(containerId);
+// Schema
+const technicianSchema = new mongoose.Schema({
+    name: String
+});
 
-module.exports = async function (context, req) {
-    context.log('API de Técnicos chamada');
+const Technician = mongoose.model('Technician', technicianSchema);
+
+// CORS middleware
+const corsMiddleware = cors({
+    origin: ['https://dcturra.github.io', 'http://localhost:3000'],
+    credentials: true
+});
+
+module.exports = async (req, res) => {
+    // Apply CORS
+    await new Promise((resolve) => corsMiddleware(req, res, resolve));
 
     try {
         switch (req.method) {
             case 'GET':
-                return await getTechnicians(context, req);
+                const technicians = await Technician.find().sort({ name: 1 });
+                res.json(technicians);
+                break;
+
             case 'POST':
-                return await createTechnician(context, req);
+                const newTechnician = new Technician(req.body);
+                await newTechnician.save();
+                res.status(201).json(newTechnician);
+                break;
+
             case 'DELETE':
-                return await deleteTechnician(context, req);
+                const { id } = req.query;
+                await Technician.findByIdAndDelete(id);
+                res.json({ message: 'Técnico deletado com sucesso' });
+                break;
+
             default:
-                context.res = {
-                    status: 405,
-                    body: { error: 'Método não permitido' }
-                };
+                res.status(405).json({ error: 'Método não permitido' });
         }
     } catch (error) {
-        context.log.error('Erro na API:', error);
-        context.res = {
-            status: 500,
-            body: { error: 'Erro interno do servidor' }
-        };
+        console.error('Erro:', error);
+        res.status(500).json({ error: 'Erro interno do servidor' });
     }
-};
-
-// Buscar todos os técnicos
-async function getTechnicians(context, req) {
-    try {
-        const querySpec = {
-            query: 'SELECT * FROM c ORDER BY c.name ASC'
-        };
-
-        const { resources: technicians } = await container.items.query(querySpec).fetchAll();
-
-        context.res = {
-            status: 200,
-            headers: {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
-            body: technicians
-        };
-    } catch (error) {
-        context.log.error('Erro ao buscar técnicos:', error);
-        context.res = {
-            status: 500,
-            body: { error: 'Erro ao buscar técnicos' }
-        };
-    }
-}
-
-// Criar novo técnico
-async function createTechnician(context, req) {
-    try {
-        const technician = req.body;
-        
-        // Validação básica
-        if (!technician.name) {
-            context.res = {
-                status: 400,
-                body: { error: 'Nome é obrigatório' }
-            };
-            return;
-        }
-
-        // Verificar se já existe
-        const querySpec = {
-            query: 'SELECT * FROM c WHERE c.name = @name',
-            parameters: [{ name: '@name', value: technician.name }]
-        };
-
-        const { resources: existing } = await container.items.query(querySpec).fetchAll();
-        
-        if (existing.length > 0) {
-            context.res = {
-                status: 409,
-                body: { error: 'Técnico já existe' }
-            };
-            return;
-        }
-
-        // Adicionar ID e timestamp
-        technician.id = Date.now().toString();
-        technician.createdAt = new Date().toISOString();
-
-        const { resource: createdTechnician } = await container.items.create(technician);
-
-        context.res = {
-            status: 201,
-            headers: {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
-            body: createdTechnician
-        };
-    } catch (error) {
-        context.log.error('Erro ao criar técnico:', error);
-        context.res = {
-            status: 500,
-            body: { error: 'Erro ao criar técnico' }
-        };
-    }
-}
-
-// Deletar técnico
-async function deleteTechnician(context, req) {
-    try {
-        const { id } = context.bindingData;
-
-        await container.item(id, id).delete();
-
-        context.res = {
-            status: 200,
-            headers: {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
-            body: { message: 'Técnico deletado com sucesso' }
-        };
-    } catch (error) {
-        context.log.error('Erro ao deletar técnico:', error);
-        context.res = {
-            status: 500,
-            body: { error: 'Erro ao deletar técnico' }
-        };
-    }
-} 
+}; 
