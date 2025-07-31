@@ -780,4 +780,5 @@ window.onclick = function(event) {
     if (event.target === modal) {
         closeLoginModal();
     }
-} 
+} / /   A t u a l i z a ç ã o :   0 7 / 3 0 / 2 0 2 5   2 3 : 1 1 : 1 7  
+ 
