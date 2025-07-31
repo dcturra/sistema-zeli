@@ -1,7 +1,7 @@
 // Configuração da API
 const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
     ? 'http://localhost:3000/api' 
-    : 'https://diario-zeli-backend.vercel.app/api'; // URL do Vercel - será atualizada
+    : 'https://diariozeli-g7hab684d-diogo-da-costa-turras-projects.vercel.app/api';
 
 // Classe principal do sistema
 class VitalSignsSystem {
