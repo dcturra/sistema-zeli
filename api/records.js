@@ -1,4 +1,5 @@
-const { kv } = require('@vercel/kv');
+// Temporariamente desabilitando Vercel KV para teste
+// const { kv } = require('@vercel/kv');
 
 // Fallback storage em memória
 let memoryStorage = [];
@@ -18,39 +19,22 @@ module.exports = async (req, res) => {
     try {
         if (req.method === 'GET') {
             // Buscar todos os registros
-            try {
-                const records = await kv.get('records') || [];
-                res.status(200).json(records);
-            } catch (kvError) {
-                console.log('Vercel KV falhou, usando armazenamento em memória:', kvError.message);
-                res.status(200).json(memoryStorage);
-            }
+            console.log('GET - Retornando registros da memória:', memoryStorage.length);
+            res.status(200).json(memoryStorage);
         } else if (req.method === 'POST') {
             // Criar novo registro
             const record = req.body;
             record.id = Date.now().toString(); // ID único
             record.date = new Date().toISOString();
             
-            try {
-                const records = await kv.get('records') || [];
-                records.unshift(record); // Adicionar no início
-                await kv.set('records', records);
-                res.status(201).json(record);
-            } catch (kvError) {
-                console.log('Vercel KV falhou, usando armazenamento em memória:', kvError.message);
-                memoryStorage.unshift(record);
-                res.status(201).json(record);
-            }
+            console.log('POST - Salvando registro na memória:', record);
+            memoryStorage.unshift(record);
+            res.status(201).json(record);
         } else if (req.method === 'DELETE') {
             // Limpar todos os registros
-            try {
-                await kv.del('records');
-                res.status(200).json({ message: 'Todos os registros foram removidos' });
-            } catch (kvError) {
-                console.log('Vercel KV falhou, usando armazenamento em memória:', kvError.message);
-                memoryStorage = [];
-                res.status(200).json({ message: 'Todos os registros foram removidos' });
-            }
+            console.log('DELETE - Limpando registros da memória');
+            memoryStorage = [];
+            res.status(200).json({ message: 'Todos os registros foram removidos' });
         } else {
             res.status(405).json({ error: 'Método não permitido' });
         }

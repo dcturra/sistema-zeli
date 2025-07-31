@@ -1,4 +1,5 @@
-const { kv } = require('@vercel/kv');
+// Temporariamente desabilitando Vercel KV para teste
+// const { kv } = require('@vercel/kv');
 
 // Fallback storage em memória
 let memoryStorage = [];
@@ -18,39 +19,22 @@ module.exports = async (req, res) => {
     try {
         if (req.method === 'GET') {
             // Buscar todos os técnicos
-            try {
-                const technicians = await kv.get('technicians') || [];
-                res.status(200).json(technicians);
-            } catch (kvError) {
-                console.log('Vercel KV falhou, usando armazenamento em memória:', kvError.message);
-                res.status(200).json(memoryStorage);
-            }
+            console.log('GET - Retornando técnicos da memória:', memoryStorage.length);
+            res.status(200).json(memoryStorage);
         } else if (req.method === 'POST') {
             // Criar novo técnico
             const technician = req.body;
             technician.id = Date.now().toString(); // ID único
             technician.date = new Date().toISOString();
             
-            try {
-                const technicians = await kv.get('technicians') || [];
-                technicians.unshift(technician); // Adicionar no início
-                await kv.set('technicians', technicians);
-                res.status(201).json(technician);
-            } catch (kvError) {
-                console.log('Vercel KV falhou, usando armazenamento em memória:', kvError.message);
-                memoryStorage.unshift(technician);
-                res.status(201).json(technician);
-            }
+            console.log('POST - Salvando técnico na memória:', technician);
+            memoryStorage.unshift(technician); // Adicionar no início
+            res.status(201).json(technician);
         } else if (req.method === 'DELETE') {
             // Limpar todos os técnicos
-            try {
-                await kv.del('technicians');
-                res.status(200).json({ message: 'Todos os técnicos foram removidos' });
-            } catch (kvError) {
-                console.log('Vercel KV falhou, usando armazenamento em memória:', kvError.message);
-                memoryStorage = [];
-                res.status(200).json({ message: 'Todos os técnicos foram removidos' });
-            }
+            console.log('DELETE - Limpando técnicos da memória');
+            memoryStorage = [];
+            res.status(200).json({ message: 'Todos os técnicos foram removidos' });
         } else {
             res.status(405).json({ error: 'Método não permitido' });
         }
