@@ -1,5 +1,4 @@
-// Fallback storage for when Vercel KV is not configured
-let fallbackRecords = [];
+const { kv } = require('@vercel/kv');
 
 // GET - Buscar todos os registros
 module.exports = async (req, res) => {
@@ -15,19 +14,22 @@ module.exports = async (req, res) => {
     try {
         if (req.method === 'GET') {
             // Buscar todos os registros
-            res.status(200).json(fallbackRecords);
+            const records = await kv.get('records') || [];
+            res.status(200).json(records);
         } else if (req.method === 'POST') {
             // Criar novo registro
             const record = req.body;
             record.id = Date.now().toString(); // ID único
             record.date = new Date().toISOString();
             
-            fallbackRecords.unshift(record); // Adicionar no início
+            const records = await kv.get('records') || [];
+            records.unshift(record); // Adicionar no início
             
+            await kv.set('records', records);
             res.status(201).json(record);
         } else if (req.method === 'DELETE') {
             // Limpar todos os registros
-            fallbackRecords = [];
+            await kv.del('records');
             res.status(200).json({ message: 'Todos os registros foram removidos' });
         } else {
             res.status(405).json({ error: 'Método não permitido' });

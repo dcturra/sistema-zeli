@@ -1,5 +1,4 @@
-// Fallback storage for when Vercel KV is not configured
-let fallbackTechnicians = [];
+const { kv } = require('@vercel/kv');
 
 // GET - Buscar todos os técnicos
 module.exports = async (req, res) => {
@@ -15,14 +14,17 @@ module.exports = async (req, res) => {
     try {
         if (req.method === 'GET') {
             // Buscar todos os técnicos
-            res.status(200).json(fallbackTechnicians);
+            const technicians = await kv.get('technicians') || [];
+            res.status(200).json(technicians);
         } else if (req.method === 'POST') {
             // Criar novo técnico
             const technician = req.body;
             technician.id = Date.now().toString(); // ID único
             
-            fallbackTechnicians.push(technician);
+            const technicians = await kv.get('technicians') || [];
+            technicians.push(technician);
             
+            await kv.set('technicians', technicians);
             res.status(201).json(technician);
         } else if (req.method === 'DELETE') {
             // Deletar técnico específico
@@ -31,8 +33,10 @@ module.exports = async (req, res) => {
                 return res.status(400).json({ error: 'ID do técnico é obrigatório' });
             }
             
-            fallbackTechnicians = fallbackTechnicians.filter(t => t.id !== id);
+            const technicians = await kv.get('technicians') || [];
+            const filteredTechnicians = technicians.filter(t => t.id !== id);
             
+            await kv.set('technicians', filteredTechnicians);
             res.status(200).json({ message: 'Técnico removido com sucesso' });
         } else {
             res.status(405).json({ error: 'Método não permitido' });
