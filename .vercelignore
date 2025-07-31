@@ -1,0 +1,11 @@
+# Ignore authentication files
+_auth
+auth
+*.auth
+auth.json
+auth.config.js
+
+# Ignore any protection files
+protection
+*.protection
+protection.json 
