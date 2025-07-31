@@ -1,5 +1,8 @@
 const { kv } = require('@vercel/kv');
 
+// Fallback storage em memória
+let memoryStorage = [];
+
 // GET - Buscar todos os técnicos
 module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -15,30 +18,39 @@ module.exports = async (req, res) => {
     try {
         if (req.method === 'GET') {
             // Buscar todos os técnicos
-            const technicians = await kv.get('technicians') || [];
-            res.status(200).json(technicians);
+            try {
+                const technicians = await kv.get('technicians') || [];
+                res.status(200).json(technicians);
+            } catch (kvError) {
+                console.log('Vercel KV falhou, usando armazenamento em memória:', kvError.message);
+                res.status(200).json(memoryStorage);
+            }
         } else if (req.method === 'POST') {
             // Criar novo técnico
             const technician = req.body;
             technician.id = Date.now().toString(); // ID único
+            technician.date = new Date().toISOString();
             
-            const technicians = await kv.get('technicians') || [];
-            technicians.push(technician);
-            
-            await kv.set('technicians', technicians);
-            res.status(201).json(technician);
-        } else if (req.method === 'DELETE') {
-            // Deletar técnico específico
-            const { id } = req.query;
-            if (!id) {
-                return res.status(400).json({ error: 'ID do técnico é obrigatório' });
+            try {
+                const technicians = await kv.get('technicians') || [];
+                technicians.unshift(technician); // Adicionar no início
+                await kv.set('technicians', technicians);
+                res.status(201).json(technician);
+            } catch (kvError) {
+                console.log('Vercel KV falhou, usando armazenamento em memória:', kvError.message);
+                memoryStorage.unshift(technician);
+                res.status(201).json(technician);
             }
-            
-            const technicians = await kv.get('technicians') || [];
-            const filteredTechnicians = technicians.filter(t => t.id !== id);
-            
-            await kv.set('technicians', filteredTechnicians);
-            res.status(200).json({ message: 'Técnico removido com sucesso' });
+        } else if (req.method === 'DELETE') {
+            // Limpar todos os técnicos
+            try {
+                await kv.del('technicians');
+                res.status(200).json({ message: 'Todos os técnicos foram removidos' });
+            } catch (kvError) {
+                console.log('Vercel KV falhou, usando armazenamento em memória:', kvError.message);
+                memoryStorage = [];
+                res.status(200).json({ message: 'Todos os técnicos foram removidos' });
+            }
         } else {
             res.status(405).json({ error: 'Método não permitido' });
         }

@@ -1,5 +1,8 @@
 const { kv } = require('@vercel/kv');
 
+// Fallback storage em memória
+let memoryStorage = [];
+
 // GET - Buscar todos os medicamentos
 module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -15,30 +18,39 @@ module.exports = async (req, res) => {
     try {
         if (req.method === 'GET') {
             // Buscar todos os medicamentos
-            const medications = await kv.get('medications') || [];
-            res.status(200).json(medications);
+            try {
+                const medications = await kv.get('medications') || [];
+                res.status(200).json(medications);
+            } catch (kvError) {
+                console.log('Vercel KV falhou, usando armazenamento em memória:', kvError.message);
+                res.status(200).json(memoryStorage);
+            }
         } else if (req.method === 'POST') {
             // Criar novo medicamento
             const medication = req.body;
             medication.id = Date.now().toString(); // ID único
+            medication.date = new Date().toISOString();
             
-            const medications = await kv.get('medications') || [];
-            medications.push(medication);
-            
-            await kv.set('medications', medications);
-            res.status(201).json(medication);
-        } else if (req.method === 'DELETE') {
-            // Deletar medicamento específico
-            const { id } = req.query;
-            if (!id) {
-                return res.status(400).json({ error: 'ID do medicamento é obrigatório' });
+            try {
+                const medications = await kv.get('medications') || [];
+                medications.unshift(medication); // Adicionar no início
+                await kv.set('medications', medications);
+                res.status(201).json(medication);
+            } catch (kvError) {
+                console.log('Vercel KV falhou, usando armazenamento em memória:', kvError.message);
+                memoryStorage.unshift(medication);
+                res.status(201).json(medication);
             }
-            
-            const medications = await kv.get('medications') || [];
-            const filteredMedications = medications.filter(m => m.id !== id);
-            
-            await kv.set('medications', filteredMedications);
-            res.status(200).json({ message: 'Medicamento removido com sucesso' });
+        } else if (req.method === 'DELETE') {
+            // Limpar todos os medicamentos
+            try {
+                await kv.del('medications');
+                res.status(200).json({ message: 'Todos os medicamentos foram removidos' });
+            } catch (kvError) {
+                console.log('Vercel KV falhou, usando armazenamento em memória:', kvError.message);
+                memoryStorage = [];
+                res.status(200).json({ message: 'Todos os medicamentos foram removidos' });
+            }
         } else {
             res.status(405).json({ error: 'Método não permitido' });
         }
