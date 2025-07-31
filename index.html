@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Sistema de Acompanhamento - Paciente Zeli</title>
+    <meta name="description" content="Sistema de Acompanhamento dos Sinais Vitais - Paciente Zeli">
+    <meta name="keywords" content="sinais vitais, saúde, acompanhamento, paciente">
+    <meta name="author" content="Sistema Zeli">
+    
+    <!-- PWA Meta -->
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Sistema Zeli">
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>❤️</text></svg>">
+    
+    <link rel="stylesheet" href="styles.css?v=1.1">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <h1><i class="fas fa-heartbeat"></i> Sistema de Acompanhamento</h1>
+                <h2>Paciente: Zeli</h2>
+                <p class="subtitle">Registro de Sinais Vitais e Observações</p>
+            </div>
+            <button class="btn btn-admin" id="loginBtn" onclick="openLoginModal()" style="position:absolute;top:30px;right:40px;">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </button>
+        </header>
+
+        <main class="main-content">
+            <div class="form-container">
+                <h3><i class="fas fa-edit"></i> Formulário de Registro</h3>
+                
+                <form id="vitalSignsForm" class="vital-signs-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="date">Data e Hora:</label>
+                            <input type="datetime-local" id="date" name="date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="technician">Técnico Responsável:</label>
+                            <select id="technician" name="technician" required onchange="toggleOtherTechnician()">
+                                <option value="">Selecione o técnico...</option>
+                                <option value="Silvana">Silvana</option>
+                                <option value="Palmira">Palmira</option>
+                                <option value="Edna">Edna</option>
+                                <option value="Outro">Outro</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="otherTechnicianGroup" style="display: none;">
+                        <label for="otherTechnician">Nome do Técnico:</label>
+                        <input type="text" id="otherTechnician" name="otherTechnician" placeholder="Digite o nome do técnico">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="systolicPressure">Pressão Sistólica (PAS):</label>
+                            <input type="number" id="systolicPressure" name="systolicPressure" placeholder="mmHg" min="50" max="300" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="diastolicPressure">Pressão Diastólica (PAD):</label>
+                            <input type="number" id="diastolicPressure" name="diastolicPressure" placeholder="mmHg" min="30" max="200" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="oxygenSaturation">Saturação de Oxigênio:</label>
+                            <input type="number" id="oxygenSaturation" name="oxygenSaturation" placeholder="%" min="0" max="100" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="heartRate">Frequência Cardíaca:</label>
+                            <input type="number" id="heartRate" name="heartRate" placeholder="bpm" min="0" max="300" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="temperature">Temperatura:</label>
+                            <input type="number" id="temperature" name="temperature" placeholder="°C" min="30" max="45" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label for="bowelMovement">Evacuação:</label>
+                            <select id="bowelMovement" name="bowelMovement" required>
+                                <option value="">Selecione...</option>
+                                <option value="normal">Normal</option>
+                                <option value="diarreia">Diarreia</option>
+                                <option value="nao">Não</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="complications">Intercorrência:</label>
+                        <select id="complications" name="complications" required onchange="toggleObservationsRequired()">
+                            <option value="">Selecione...</option>
+                            <option value="nao">Não</option>
+                            <option value="sim">Sim</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="observations">Observações:</label>
+                        <textarea id="observations" name="observations" placeholder="Descreva as observações sobre o estado da paciente..." rows="4"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Medicações Administradas:</label>
+                        <div class="medications-administered-container">
+                            <div class="medications-period">
+                                <h4><i class="fas fa-sun"></i> Manhã (até 12h)</h4>
+                                <div class="medications-grid" id="morningMedications">
+                                    <!-- Medicamentos da manhã serão carregados dinamicamente -->
+                                </div>
+                            </div>
+                            <div class="medications-period">
+                                <h4><i class="fas fa-moon"></i> Tarde/Noite (após 12h)</h4>
+                                <div class="medications-grid" id="afternoonMedications">
+                                    <!-- Medicamentos da tarde/noite serão carregados dinamicamente -->
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-top: 15px;">
+                            <label for="otherMedication">Outro ou demais observações:</label>
+                            <input type="text" id="otherMedication" name="otherMedication" placeholder="Digite outras medicações ou observações..." style="width: 100%;">
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Salvar Registro
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="clearForm()">
+                            <i class="fas fa-eraser"></i> Limpar
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="reports-container">
+                <div class="reports-header">
+                    <h3><i class="fas fa-chart-line"></i> Histórico de Registros</h3>
+                    <div class="reports-actions">
+                        <button class="btn btn-outline" onclick="exportData()">
+                            <i class="fas fa-download"></i> Exportar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="filters">
+                    <input type="date" id="filterDate" onchange="filterRecords()" placeholder="Filtrar por data">
+                    <select id="filterComplications" onchange="filterRecords()">
+                        <option value="">Todas as intercorrências</option>
+                        <option value="nenhuma">Nenhuma</option>
+                        <option value="leve">Leve</option>
+                        <option value="moderada">Moderada</option>
+                        <option value="grave">Grave</option>
+                    </select>
+                </div>
+
+                <div class="records-container" id="recordsContainer">
+                    <!-- Os registros serão carregados aqui dinamicamente -->
+                </div>
+            </div>
+
+            <div class="medications-management-container" id="medicationsManagement" style="display:none;">
+                <div class="medications-header">
+                    <h3><i class="fas fa-pills"></i> Gerenciamento de Medicamentos</h3>
+                    <div class="medications-actions">
+                        <button class="btn btn-outline" onclick="addMedication()">
+                            <i class="fas fa-plus"></i> Adicionar Medicamento
+                        </button>
+                    </div>
+                </div>
+
+                <div class="add-medication-form" id="addMedicationForm" style="display: none;">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="newMedicationName">Nome do Medicamento:</label>
+                            <input type="text" id="newMedicationName" placeholder="Digite o nome do medicamento" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="newMedicationTime">Horário:</label>
+                            <input type="time" id="newMedicationTime" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="newMedicationSchedule">Tipo de Horário:</label>
+                            <select id="newMedicationSchedule" onchange="toggleFreeTimeOption()">
+                                <option value="fixed">Horário Fixo</option>
+                                <option value="free">Horário Livre (se necessário/em caso de dor)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" onclick="saveMedication()">
+                            <i class="fas fa-save"></i> Salvar
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="cancelAddMedication()">
+                            <i class="fas fa-times"></i> Cancelar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="medications-list" id="medicationsList">
+                    <!-- Lista de medicamentos será carregada aqui dinamicamente -->
+                </div>
+            </div>
+
+            <!-- Seção de Gerenciamento de Técnicos -->
+            <div class="technicians-management-container" id="techniciansManagement" style="display:none;">
+                <h3><i class="fas fa-user-nurse"></i> Gerenciamento de Técnicos</h3>
+                <ul id="techniciansList" style="margin-bottom: 18px;"></ul>
+                <form id="addTechnicianForm" onsubmit="return addTechnician(event)">
+                    <input type="text" id="newTechnicianName" placeholder="Nome do técnico" required style="width: 60%; margin-right: 8px;">
+                    <button type="submit" class="btn btn-primary btn-xs">Adicionar</button>
+                </form>
+            </div>
+
+            <!-- Seção de Administração do Sistema -->
+            <div class="admin-container" id="adminContainer" style="display:none;">
+                <h3><i class="fas fa-cog"></i> Administração do Sistema</h3>
+                <div class="admin-actions">
+                    <button class="btn btn-danger" onclick="clearAllData()">
+                        <i class="fas fa-trash"></i> Limpar Todos os Registros
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal para visualizar detalhes do registro -->
+    <div id="recordModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
+    <!-- Modal de Login do Admin -->
+    <div id="loginModal" class="modal" style="display:none;">
+        <div class="modal-content" style="max-width: 350px;">
+            <span class="close" onclick="closeLoginModal()">&times;</span>
+            <h3 style="margin-bottom: 20px;"><i class="fas fa-user-shield"></i> Login do Administrador</h3>
+            <form id="loginForm" onsubmit="return adminLogin(event)">
+                <div class="form-group">
+                    <label for="adminUser">Usuário:</label>
+                    <input type="text" id="adminUser" name="adminUser" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="adminPass">Senha:</label>
+                    <input type="password" id="adminPass" name="adminPass" required autocomplete="current-password">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-sign-in-alt"></i> Entrar
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="closeLoginModal()">
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js?v=1.1"></script>
+</body>
+</html> 

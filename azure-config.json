@@ -1,0 +1,46 @@
+{
+  "azure": {
+    "subscription": "sua-assinatura",
+    "resourceGroup": "zeli-rg",
+    "location": "brazilsouth",
+    "staticWebApp": {
+      "name": "zeli-system",
+      "branch": "main",
+      "buildFolder": "/",
+      "apiFolder": "api"
+    },
+    "cosmosDb": {
+      "name": "zeli-cosmos-db",
+      "database": "zeli-database",
+      "containers": [
+        {
+          "name": "records",
+          "partitionKey": "/id"
+        },
+        {
+          "name": "medications",
+          "partitionKey": "/id"
+        },
+        {
+          "name": "technicians",
+          "partitionKey": "/id"
+        }
+      ]
+    }
+  },
+  "environment": {
+    "COSMOS_ENDPOINT": "https://zeli-cosmos-db.documents.azure.com:443/",
+    "COSMOS_KEY": "sua-chave-primaria-aqui"
+  },
+  "features": {
+    "authentication": false,
+    "customDomain": false,
+    "https": true,
+    "backup": true
+  },
+  "costs": {
+    "staticWebApps": "Gratuito (2 apps, 100GB/mês)",
+    "cosmosDb": "Gratuito (1000 RU/s, 25GB)",
+    "estimatedMonthly": "$0 (gratuito)"
+  }
+} 

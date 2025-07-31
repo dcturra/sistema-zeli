@@ -1,0 +1,27 @@
+Backup criado em: 29/07/2025  8:31:56,09 
+Versao do sistema: 1.1.0 
+Arquivos incluidos: 
+ O volume na unidade C n∆o tem nome.
+ O N£mero de SÇrie do Volume Ç 0A97-6A44
+
+ Pasta de C:\Users\Adm\diario_zeli\backup-v2025-29-07_08-31-56
+
+29/07/2025  08:26            12.667 index.html
+
+ Pasta de C:\Users\Adm\diario_zeli\backup-v2025-29-07_08-31-56
+
+29/07/2025  08:28            13.403 styles.css
+
+ Pasta de C:\Users\Adm\diario_zeli\backup-v2025-29-07_08-31-56
+
+29/07/2025  08:28            26.310 script.js
+
+ Pasta de C:\Users\Adm\diario_zeli\backup-v2025-29-07_08-31-56
+
+28/07/2025  22:36               881 manifest.json
+
+ Pasta de C:\Users\Adm\diario_zeli\backup-v2025-29-07_08-31-56
+
+28/07/2025  22:19             5.220 README.md
+               5 arquivo(s)         58.481 bytes
+               0 pasta(s)    6.807.867.392 bytes dispon°veis
