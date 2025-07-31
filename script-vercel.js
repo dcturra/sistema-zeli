@@ -87,6 +87,8 @@ class VitalSignsSystem {
         const saturation = parseInt(formData.get('saturation'));
         const heartRate = parseInt(formData.get('heartRate'));
         const temperature = parseFloat(formData.get('temperature'));
+        const vte = parseInt(formData.get('vte'));
+        const fuga = parseFloat(formData.get('fuga'));
         const complications = formData.get('complications');
         const observations = formData.get('observations');
         
@@ -117,10 +119,27 @@ class VitalSignsSystem {
             alert('Temperatura deve estar entre 35°C e 42°C');
             return;
         }
+        if (vte < 0 || vte > 2000) {
+            alert('Vte deve estar entre 0 e 2000 ml');
+            return;
+        }
+        if (fuga < 0 || fuga > 50) {
+            alert('Fuga deve estar entre 0 e 50 L/min');
+            return;
+        }
         
         // Validação de observações obrigatórias
         if (complications === 'Sim' && (!observations || observations.trim() === '')) {
             alert('Observações são obrigatórias quando há intercorrência');
+            return;
+        }
+        
+        // Verificar se algum medicamento teve horário alterado
+        const timeInputs = document.querySelectorAll('.medication-free-time-filled');
+        const hasTimeChanges = Array.from(timeInputs).some(input => input.style.display !== 'none' && input.value !== '');
+        
+        if (hasTimeChanges && (!observations || observations.trim() === '')) {
+            alert('Observações são obrigatórias quando o horário de um medicamento é alterado. Explique o motivo da alteração.');
             return;
         }
         
@@ -141,6 +160,8 @@ class VitalSignsSystem {
             saturation: saturation,
             heartRate: heartRate,
             temperature: temperature,
+            vte: vte,
+            fuga: fuga,
             bowelMovement: formData.get('bowelMovement'),
             observations: observations,
             complications: complications,
@@ -199,7 +220,9 @@ class VitalSignsSystem {
                         Pressão: ${record.pressureSystolic}/${record.pressureDiastolic} mmHg | 
                         Saturação: ${record.saturation}% | 
                         FC: ${record.heartRate} bpm | 
-                        Temperatura: ${record.temperature}°C
+                        Temperatura: ${record.temperature}°C | 
+                        Vte: ${record.vte} ml | 
+                        Fuga: ${record.fuga} L/min
                     </div>
                     <div class="other-info">
                         <strong>Evacuação:</strong> ${record.bowelMovement} | 
@@ -221,7 +244,12 @@ class VitalSignsSystem {
     clearForm() {
         document.getElementById('vitalSignsForm').reset();
         document.getElementById('otherTechnician').style.display = 'none';
-        document.getElementById('observations').required = false;
+        
+        // Limpar campo observações
+        const observations = document.getElementById('observations');
+        observations.required = false;
+        observations.classList.remove('observations-required');
+        observations.placeholder = 'Descreva as observações sobre o estado da paciente...';
         
         // Limpar checkboxes de medicamentos
         const checkboxes = document.querySelectorAll('input[name="administeredMedications"]');
@@ -231,8 +259,15 @@ class VitalSignsSystem {
             if (timeInput) {
                 timeInput.style.display = 'none';
                 timeInput.value = '';
+                timeInput.classList.remove('medication-free-time-filled');
             }
         });
+        
+        // Restaurar horários originais
+        const timeSpans = document.querySelectorAll('.medication-time');
+        const clockBtns = document.querySelectorAll('.clock-edit-btn');
+        timeSpans.forEach(span => span.style.display = 'inline');
+        clockBtns.forEach(btn => btn.style.display = 'inline-block');
     }
 
     // Exportar dados
@@ -508,16 +543,25 @@ class VitalSignsSystem {
         const timeSpan = timeInput.previousElementSibling;
         const clockBtn = timeInput.nextElementSibling;
         
-        if (confirm('Deseja alterar o horário deste medicamento?')) {
+        // Confirmação mais detalhada
+        const confirmMessage = `Deseja alterar o horário do medicamento "${medicationName}"?\n\nIMPORTANTE: Se confirmar, você será obrigado a preencher o campo "Observações" explicando o motivo da alteração.`;
+        
+        if (confirm(confirmMessage)) {
             timeInput.style.display = 'inline-block';
             timeInput.classList.add('medication-free-time-filled');
             timeSpan.style.display = 'none';
             if (clockBtn) clockBtn.style.display = 'none';
             
-            // Tornar campo "Outro ou demais observações" obrigatório
-            const otherMedications = document.getElementById('otherMedications');
-            otherMedications.required = true;
-            otherMedications.placeholder = 'Obrigatório quando horário é alterado';
+            // Tornar campo "Observações" obrigatório
+            const observations = document.getElementById('observations');
+            observations.required = true;
+            observations.placeholder = 'OBRIGATÓRIO: Explique o motivo da alteração do horário do medicamento';
+            
+            // Destacar o campo observações
+            observations.classList.add('observations-required');
+            
+            // Mostrar alerta
+            alert('Campo "Observações" agora é obrigatório. Explique o motivo da alteração do horário.');
         }
     }
 

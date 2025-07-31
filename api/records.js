@@ -16,6 +16,8 @@ const recordSchema = new mongoose.Schema({
     saturation: Number,
     heartRate: Number,
     temperature: Number,
+    vte: Number,
+    fuga: Number,
     bowelMovement: String,
     observations: String,
     complications: String,

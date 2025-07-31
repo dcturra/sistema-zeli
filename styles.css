@@ -868,4 +868,66 @@ body {
 
 .btn-danger:hover {
     background: #c82333;
+}
+
+/* Estilos para campos de medicamentos com horário editável */
+.medication-free-time-input {
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 12px;
+    width: 70px;
+    min-width: 70px;
+    max-width: 70px;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+.medication-free-time-filled {
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 12px;
+    width: 70px;
+    min-width: 70px;
+    max-width: 70px;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+/* Estilo para campo observações quando obrigatório por alteração de horário */
+.observations-required {
+    border-color: #ff6b6b !important;
+    background-color: #fff5f5 !important;
+    box-shadow: 0 0 5px rgba(255, 107, 107, 0.3);
+}
+
+/* Botão de relógio para editar horário */
+.clock-edit-btn {
+    background: none;
+    border: none;
+    color: #667eea;
+    cursor: pointer;
+    padding: 2px;
+    margin-left: 5px;
+    font-size: 14px;
+    transition: color 0.3s ease;
+}
+
+.clock-edit-btn:hover {
+    color: #5a6fd8;
+    transform: scale(1.1);
+}
+
+/* Container do horário do medicamento */
+.medication-time-container {
+    display: flex;
+    align-items: center;
+    margin-top: 5px;
 } 
