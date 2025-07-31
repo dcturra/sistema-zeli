@@ -1,55 +1,48 @@
-const mongoose = require('mongoose');
-const cors = require('cors');
+const { kv } = require('@vercel/kv');
 
-// MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-});
-
-// Schema
-const medicationSchema = new mongoose.Schema({
-    name: String,
-    time: String,
-    isFreeTime: { type: Boolean, default: false }
-});
-
-const Medication = mongoose.model('Medication', medicationSchema);
-
-// CORS middleware
-const corsMiddleware = cors({
-    origin: ['https://dcturra.github.io', 'http://localhost:3000'],
-    credentials: true
-});
-
+// GET - Buscar todos os medicamentos
 module.exports = async (req, res) => {
-    // Apply CORS
-    await new Promise((resolve) => corsMiddleware(req, res, resolve));
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+    if (req.method === 'OPTIONS') {
+        res.status(200).end();
+        return;
+    }
 
     try {
-        switch (req.method) {
-            case 'GET':
-                const medications = await Medication.find().sort({ time: 1 });
-                res.json(medications);
-                break;
-
-            case 'POST':
-                const newMedication = new Medication(req.body);
-                await newMedication.save();
-                res.status(201).json(newMedication);
-                break;
-
-            case 'DELETE':
-                const { id } = req.query;
-                await Medication.findByIdAndDelete(id);
-                res.json({ message: 'Medicamento deletado com sucesso' });
-                break;
-
-            default:
-                res.status(405).json({ error: 'Método não permitido' });
+        if (req.method === 'GET') {
+            // Buscar todos os medicamentos
+            const medications = await kv.get('medications') || [];
+            res.status(200).json(medications);
+        } else if (req.method === 'POST') {
+            // Criar novo medicamento
+            const medication = req.body;
+            medication.id = Date.now().toString(); // ID único
+            
+            const medications = await kv.get('medications') || [];
+            medications.push(medication);
+            
+            await kv.set('medications', medications);
+            res.status(201).json(medication);
+        } else if (req.method === 'DELETE') {
+            // Deletar medicamento específico
+            const { id } = req.query;
+            if (!id) {
+                return res.status(400).json({ error: 'ID do medicamento é obrigatório' });
+            }
+            
+            const medications = await kv.get('medications') || [];
+            const filteredMedications = medications.filter(m => m.id !== id);
+            
+            await kv.set('medications', filteredMedications);
+            res.status(200).json({ message: 'Medicamento removido com sucesso' });
+        } else {
+            res.status(405).json({ error: 'Método não permitido' });
         }
     } catch (error) {
-        console.error('Erro:', error);
+        console.error('Erro na API de medicamentos:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
 }; 

@@ -1,65 +1,41 @@
-const mongoose = require('mongoose');
-const cors = require('cors');
+const { kv } = require('@vercel/kv');
 
-// MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-});
-
-// Schema
-const recordSchema = new mongoose.Schema({
-    date: { type: Date, default: Date.now },
-    technician: String,
-    pressureSystolic: Number,
-    pressureDiastolic: Number,
-    saturation: Number,
-    heartRate: Number,
-    temperature: Number,
-    vte: Number,
-    fuga: Number,
-    bowelMovement: String,
-    observations: String,
-    complications: String,
-    administeredMedications: [String],
-    otherMedications: String
-});
-
-const Record = mongoose.model('Record', recordSchema);
-
-// CORS middleware
-const corsMiddleware = cors({
-    origin: ['https://dcturra.github.io', 'http://localhost:3000'],
-    credentials: true
-});
-
+// GET - Buscar todos os registros
 module.exports = async (req, res) => {
-    // Apply CORS
-    await new Promise((resolve) => corsMiddleware(req, res, resolve));
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+    if (req.method === 'OPTIONS') {
+        res.status(200).end();
+        return;
+    }
 
     try {
-        switch (req.method) {
-            case 'GET':
-                const records = await Record.find().sort({ date: -1 });
-                res.json(records);
-                break;
-
-            case 'POST':
-                const newRecord = new Record(req.body);
-                await newRecord.save();
-                res.status(201).json(newRecord);
-                break;
-
-            case 'DELETE':
-                await Record.deleteMany({});
-                res.json({ message: 'Todos os registros foram deletados' });
-                break;
-
-            default:
-                res.status(405).json({ error: 'Método não permitido' });
+        if (req.method === 'GET') {
+            // Buscar todos os registros
+            const records = await kv.get('records') || [];
+            res.status(200).json(records);
+        } else if (req.method === 'POST') {
+            // Criar novo registro
+            const record = req.body;
+            record.id = Date.now().toString(); // ID único
+            record.date = new Date().toISOString();
+            
+            const records = await kv.get('records') || [];
+            records.unshift(record); // Adicionar no início
+            
+            await kv.set('records', records);
+            res.status(201).json(record);
+        } else if (req.method === 'DELETE') {
+            // Limpar todos os registros
+            await kv.del('records');
+            res.status(200).json({ message: 'Todos os registros foram removidos' });
+        } else {
+            res.status(405).json({ error: 'Método não permitido' });
         }
     } catch (error) {
-        console.error('Erro:', error);
+        console.error('Erro na API de registros:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
 }; 
